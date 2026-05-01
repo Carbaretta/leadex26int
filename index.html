@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SECURE TERMINAL LOGON</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Roboto+Mono:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --text-main: #e0e0e0;
+            --primary-accent: #b30000;
+            /* Deep Red */
+            --card-bg: #141414;
+            --border-color: #333333;
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 30px 30px;
+            color: var(--text-main);
+            font-family: 'Roboto Mono', monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-panel {
+            border: 1px solid var(--border-color);
+            padding: 3rem;
+            background: var(--card-bg);
+            border-left: 5px solid var(--primary-accent);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .login-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 20px;
+            height: 20px;
+            border-top: 2px solid var(--primary-accent);
+            border-right: 2px solid var(--primary-accent);
+            opacity: 0.5;
+        }
+
+        .login-title {
+            color: #fff;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .form-control {
+            background-color: #000;
+            border: 1px solid var(--border-color);
+            color: #0f0;
+            font-family: 'Roboto Mono', monospace;
+            padding: 1rem;
+        }
+
+        .form-control:focus {
+            background-color: #050505;
+            border-color: var(--primary-accent);
+            color: #0f0;
+            box-shadow: 0 0 0 0.25rem rgba(179, 0, 0, 0.25);
+        }
+
+        .btn-custom {
+            background-color: transparent;
+            border: 1px solid var(--primary-accent);
+            color: var(--primary-accent);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1px;
+            padding: 0.75rem 2rem;
+            transition: all 0.3s;
+        }
+
+        .btn-custom:hover {
+            background-color: var(--primary-accent);
+            color: #fff;
+        }
+
+        #link-container {
+            display: none;
+            margin-top: 2rem;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .link-card {
+            display: block;
+            background: #1a1a1a;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            text-decoration: none;
+            color: var(--text-main);
+            transition: all 0.2s;
+            border-left: 4px solid var(--primary-accent);
+        }
+
+        .link-card:hover {
+            background: #222;
+            color: #fff;
+            transform: translateX(5px);
+        }
+
+        .classification {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            color: var(--primary-accent);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-size: 0.8rem;
+            pointer-events: none;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="classification">Top Secret // YUAS EYES ONLY</div>
+
+    <div class="login-panel">
+        <div class="login-title">
+            <i class="fas fa-shield-alt me-2 text-danger"></i> Secure Terminal Access
+        </div>
+
+        <div id="auth-section">
+            <p class="text-white small mb-4">Enter authorization key to access classified intelligence briefing.</p>
+            <div class="mb-3">
+                <input type="password" id="auth-key" class="form-control" placeholder="AUTHORIZATION KEY"
+                    autocomplete="off">
+            </div>
+            <div class="d-grid">
+                <button class="btn btn-custom" id="submit-btn"><i class="fas fa-lock-open me-2"></i> Decrypt &
+                    Access</button>
+            </div>
+        </div>
+
+        <div id="link-container">
+            <p class="text-success small mb-2"><i class="fas fa-check-circle me-1"></i> Decryption complete. Link
+                generated.</p>
+            <a href="#" id="intel-link" class="link-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1 text-white">Intelligence Brief 1</h5>
+                        <small class="text-white">Classification: Top Secret</small>
+                    </div>
+                    <i class="fas fa-chevron-right text-danger"></i>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('submit-btn').addEventListener('click', function () {
+            const key = document.getElementById('auth-key').value;
+            if (!key) return;
+
+            // Generate path by prepending the password to the target file
+            const targetFile = '/intbrief_1.html';
+            const decodedPath = 'briefs/' + key + targetFile;
+
+            // Set the href to the decoded path
+            const linkElement = document.getElementById('intel-link');
+            linkElement.href = decodedPath;
+
+            // Show the link card (incorrect keys will lead to a 404 path)
+            document.getElementById('auth-section').style.display = 'none';
+            document.getElementById('link-container').style.display = 'block';
+        });
+
+        document.getElementById('auth-key').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                document.getElementById('submit-btn').click();
+            }
+        });
+    </script>
+</body>
+
+</html>
