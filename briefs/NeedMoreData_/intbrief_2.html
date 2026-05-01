@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligence Brief 2 - 19th June</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Roboto+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --text-main: #212529;
+            --text-muted: #6c757d;
+            --primary-accent: #b30000; /* Deep Red */
+            --card-bg: #ffffff;
+            --border-color: #dee2e6;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            background-image: linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Container and Slides */
+        .presentation-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            z-index: 10;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 4rem 8rem;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(15px);
+            transition: all 0.5s ease-out;
+            background-color: transparent;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        /* Title Slide Animations */
+        .title-logo {
+            width: 150px;
+            opacity: 0;
+            animation: fadeInFade 1.5s ease forwards 0.2s;
+        }
+        .title-panel {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUpFade 1s ease-out forwards 0.5s;
+            border: 1px solid var(--border-color);
+            padding: 2.5rem;
+            background: var(--card-bg);
+            border-left: 5px solid var(--primary-accent);
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.05);
+            position: relative;
+        }
+        .title-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 20px; height: 20px;
+            border-top: 2px solid var(--primary-accent);
+            border-right: 2px solid var(--primary-accent);
+            opacity: 0.5;
+        }
+        @keyframes fadeInFade {
+            to { opacity: 1; }
+        }
+        @keyframes slideUpFade {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Reusable Components */
+        .content-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 0;
+            border-left: 4px solid var(--primary-accent);
+            padding: 2.5rem;
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.05);
+            height: 100%;
+            position: relative;
+        }
+        
+        .content-card::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 15px; height: 15px;
+            border-top: 2px solid var(--primary-accent);
+            border-right: 2px solid var(--primary-accent);
+            opacity: 0.5;
+        }
+
+        .slide-title {
+            color: var(--text-main);
+            font-weight: 700;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--primary-accent);
+            padding-bottom: 0.5rem;
+            display: inline-block;
+            font-family: 'Roboto Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            background: var(--card-bg);
+            padding: 0.5rem 1rem;
+            border-radius: 0;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary-accent);
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.05);
+        }
+
+        .ctrl-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .ctrl-btn:hover {
+            color: var(--primary-accent);
+        }
+
+        #slide-indicator {
+            font-size: 0.9rem;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        /* Map Styles */
+        #geography-map {
+            width: 100%;
+            height: 100%;
+            min-height: 450px;
+            border-radius: 0;
+            z-index: 1;
+        }
+        .leaflet-custom-marker-wrapper {
+            background: transparent;
+            border: none;
+        }
+        .custom-marker {
+            width: 12px;
+            height: 12px;
+            background-color: transparent;
+            border: 2px solid var(--primary-accent);
+            border-radius: 0;
+            box-shadow: 0 0 8px rgba(0,0,0,0.5);
+            animation: pulse 2s infinite;
+        }
+        .custom-marker::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 4px; height: 4px;
+            background-color: var(--primary-accent);
+        }
+        .danger-marker {
+            width: 12px;
+            height: 12px;
+            background-color: transparent;
+            border: 2px solid #dc3545;
+            border-radius: 0;
+            box-shadow: 0 0 8px rgba(220,53,69,0.5);
+        }
+        .danger-marker::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 4px; height: 4px;
+            background-color: #dc3545;
+        }
+        /* Fragments */
+        .fragment {
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+        }
+        .fragment.visible {
+            opacity: 1;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(179, 0, 0, 0.7); }
+            70% { transform: scale(1.5); box-shadow: 0 0 0 10px rgba(179, 0, 0, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(179, 0, 0, 0); }
+        }
+        .leaflet-popup-content-wrapper {
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            border-radius: 0;
+            border-left: 3px solid var(--primary-accent);
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+        }
+        .leaflet-popup-tip { background-color: var(--card-bg); }
+        .leaflet-popup-content { margin: 12px; font-family: 'Roboto Mono', monospace; font-size: 0.85rem; }
+        
+        /* Global Overrides for Sharper Look */
+        img { border-radius: 0 !important; }
+        .rounded-circle { border-radius: 0 !important; }
+        .rounded { border-radius: 0 !important; }
+        .badge { font-family: 'Roboto Mono', monospace; border-radius: 0 !important; font-weight: 600; letter-spacing: 0.5px;}
+
+        /* Video Container Styles */
+        #video-container {
+            display: none;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0; left: 0;
+            z-index: 2;
+        }
+        
+        .video-player {
+            width: 100%;
+            background: #000;
+            border: 1px solid var(--border-color);
+            border-radius: 0;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="presentation-container" id="presentation">
+        
+        <!-- Persistent Classification Header -->
+        <div class="position-absolute w-100 text-center" style="top: 20px; left: 0; z-index: 1050; pointer-events: none;">
+            <span class="text-danger fw-bold text-uppercase" style="font-size: 0.75rem; letter-spacing: 3px; opacity: 0.8;">Yuas Eyes Only</span>
+        </div>
+
+        <!-- Slide 1: Title Slide Layout -->
+        <div class="slide active">
+            <div class="row w-100 justify-content-center text-center">
+                <div class="col-md-8">
+                    <img src="../GiveMeIntelNow!/yorkshire.png" alt="Logo" class="title-logo mb-4">
+                    <div class="title-panel">
+                        <h1 class="display-4 fw-bold" style="color: var(--text-main);">Intelligence Brief 2 - 19th June</h1>
+                        <h3 class="fw-light text-muted mt-3">IntO Stockwell</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: Recap -->
+        <div class="slide">
+            <div class="container-fluid h-100 d-flex flex-column" style="padding-top: 2rem;">
+                <h1 class="slide-title">Recap: Escalation of Force</h1>
+                <div class="row g-4 flex-grow-1">
+                    <div class="col-md-5 h-100">
+                        <div class="content-card p-0 h-100 border-0 shadow-none bg-transparent d-flex align-items-center justify-content-center">
+                            <img src="../GiveMeIntelNow!/theawakening.png" alt="The Awakening Event" class="img-fluid rounded shadow-sm" style="max-height: 65vh; object-fit: contain;">
+                        </div>
+                    </div>
+                    <div class="col-md-7 h-100">
+                        <div class="content-card p-5 h-100 d-flex flex-column justify-content-center">
+                            <h4 class="mb-4 text-warning border-bottom border-warning pb-2" style="border-width: 2px !important;"><i class="fas fa-exclamation-circle me-2"></i>Activity Update</h4>
+                            <p class="fs-4 mb-4" style="line-height: 1.8; color: var(--text-main);">
+                                Increase in activity has been marced; threats have been backed by an increase in activity and an escalation of force. There have been increased kinetic engagements around the ports and on Montana Jacques.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Port Activity -->
+        <div class="slide" id="slide-geography">
+            <div class="container-fluid h-100 d-flex flex-column" style="padding-top: 2rem;">
+                <h1 class="slide-title">Port Activity</h1>
+                <div class="row g-4 flex-grow-1" style="min-height: 500px;">
+                    <div class="col-md-12 h-100">
+                        <div class="content-card p-1 h-100 border-2 position-relative" style="border-color: #ced4da;">
+                            <!-- Floating Map Label -->
+                            <div id="map-label" class="position-absolute p-3 bg-dark text-white rounded shadow-lg" style="top: 20px; right: 20px; z-index: 500; border-left: 4px solid var(--primary-accent); max-width: 300px; transition: opacity 1s ease-in-out;">
+                                <h6 class="mb-1 fw-bold"><i class="fas fa-map-marker-alt text-danger me-2"></i>Los Islas del Marmalingas</h6>
+                                <p class="small mb-0" style="color: #adb5bd; font-family: 'Roboto Mono', monospace;">21.9812855981447, -77.61792764129599</p>
+                            </div>
+
+                            <!-- Map Container -->
+                            <div id="geography-map" style="transition: opacity 1s ease-in-out; position: absolute; top:0; left:0; width: 100%; height: 100%;"></div>
+                            
+                            <!-- Videos Container -->
+                            <div id="video-container" class="d-flex flex-column justify-content-center align-items-center p-4" style="background: var(--card-bg);">
+                                <div class="row w-100 h-100 gx-4">
+                                    <div class="col-6 h-100 d-flex flex-column justify-content-center">
+                                        <h5 class="mb-3 text-center fw-bold" style="color: var(--primary-accent); font-family: 'Roboto Mono', monospace;">Kinetic Engagement</h5>
+                                        <video id="vid1" src="vid_boathit.mp4" controls class="video-player shadow-sm w-100"></video>
+                                    </div>
+                                    <div class="col-6 h-100 d-flex flex-column justify-content-center">
+                                        <h5 class="mb-3 text-center fw-bold" style="color: var(--primary-accent); font-family: 'Roboto Mono', monospace;">Smuggling Operation</h5>
+                                        <video id="vid2" src="vid_coke.mp4" controls class="video-player shadow-sm w-100"></video>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Navigation Controls -->
+    <div class="controls">
+        <button class="ctrl-btn" id="prev-btn" aria-label="Previous Slide"><i class="fas fa-chevron-left"></i></button>
+        <span id="slide-indicator">1 / 3</span>
+        <button class="ctrl-btn" id="next-btn" aria-label="Next Slide"><i class="fas fa-chevron-right"></i></button>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slides = document.querySelectorAll('.slide');
+            const indicator = document.getElementById('slide-indicator');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            let currentSlide = 0;
+            const totalSlides = slides.length;
+            let videoMode = false;
+
+            function initMap() {
+                if (window.leafletMap) return;
+                
+                window.leafletMap = L.map('geography-map', {
+                    zoomControl: false,
+                    attributionControl: false
+                }).setView([21.9812855981447, -77.61792764129599], 9);
+
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+                    maxZoom: 19
+                }).addTo(window.leafletMap);
+
+                const createIcon = (colorClass) => {
+                    return L.divIcon({
+                        className: 'leaflet-custom-marker-wrapper',
+                        html: `<div class="${colorClass}"></div>`,
+                        iconSize: [16, 16],
+                        iconAnchor: [8, 8]
+                    });
+                };
+
+                const marmalingas = L.marker([21.9812855981447, -77.61792764129599], {icon: createIcon('danger-marker')}).addTo(window.leafletMap);
+                marmalingas.bindPopup('<b>Los Islas del Marmalingas</b>');
+            }
+
+            function playVideos() {
+                const mapEl = document.getElementById('geography-map');
+                const mapLabel = document.getElementById('map-label');
+                const vidContainer = document.getElementById('video-container');
+                const vid1 = document.getElementById('vid1');
+                const vid2 = document.getElementById('vid2');
+
+                mapEl.style.opacity = '0';
+                mapLabel.style.opacity = '0';
+                
+                setTimeout(() => {
+                    mapLabel.style.display = 'none';
+                    vidContainer.style.display = 'flex';
+                    // Trigger reflow
+                    void vidContainer.offsetWidth;
+                    vidContainer.style.opacity = '1';
+                    
+                    vid1.play().catch(e => console.log('Autoplay prevented:', e));
+                    vid2.play().catch(e => console.log('Autoplay prevented:', e));
+                }, 1000);
+            }
+
+            function resetVideos() {
+                const mapEl = document.getElementById('geography-map');
+                const mapLabel = document.getElementById('map-label');
+                const vidContainer = document.getElementById('video-container');
+                const vid1 = document.getElementById('vid1');
+                const vid2 = document.getElementById('vid2');
+
+                vidContainer.style.opacity = '0';
+                setTimeout(() => {
+                    vidContainer.style.display = 'none';
+                    mapEl.style.opacity = '1';
+                    mapLabel.style.display = 'block';
+                    // Trigger reflow before fading back in
+                    void mapLabel.offsetWidth;
+                    mapLabel.style.opacity = '1';
+                    vid1.pause();
+                    vid1.currentTime = 0;
+                    vid2.pause();
+                    vid2.currentTime = 0;
+                }, 1000);
+            }
+
+            function nextAction() {
+                const activeSlide = slides[currentSlide];
+                const hiddenFragments = activeSlide.querySelectorAll('.fragment:not(.visible)');
+                
+                if (hiddenFragments.length > 0) {
+                    hiddenFragments[0].classList.add('visible');
+                } else if (currentSlide === 2 && !videoMode) {
+                    videoMode = true;
+                    playVideos();
+                } else if (currentSlide < totalSlides - 1) {
+                    updateSlide(currentSlide + 1);
+                }
+            }
+
+            function prevAction() {
+                const activeSlide = slides[currentSlide];
+                const visibleFragments = activeSlide.querySelectorAll('.fragment.visible');
+                
+                if (currentSlide === 2 && videoMode) {
+                    videoMode = false;
+                    resetVideos();
+                } else if (visibleFragments.length > 0) {
+                    visibleFragments[visibleFragments.length - 1].classList.remove('visible');
+                } else {
+                    const prevIndex = currentSlide - 1;
+                    updateSlide(prevIndex);
+                    if (prevIndex >= 0) {
+                        slides[prevIndex].querySelectorAll('.fragment').forEach(f => f.classList.add('visible'));
+                    }
+                }
+            }
+
+            function updateSlide(index) {
+                if (index < 0) index = 0;
+                if (index >= totalSlides) index = totalSlides - 1;
+                
+                if (index !== currentSlide) {
+                     slides[currentSlide].querySelectorAll('.fragment').forEach(f => f.classList.remove('visible'));
+                     if (currentSlide === 2 && videoMode) {
+                         videoMode = false;
+                         resetVideos();
+                     }
+                }
+
+                currentSlide = index;
+
+                slides.forEach((slide, i) => {
+                    slide.classList.remove('active');
+                    if (i === currentSlide) {
+                        slide.classList.add('active');
+                        if (slide.id === 'slide-geography') {
+                            if (!window.leafletMap) initMap();
+                            window.leafletMap.invalidateSize();
+                        }
+                    }
+                });
+
+                indicator.textContent = `${currentSlide + 1} / ${totalSlides}`;
+            }
+
+            // Keyboard Navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight' || e.key === ' ') {
+                    nextAction();
+                } else if (e.key === 'ArrowLeft') {
+                    prevAction();
+                } else if (e.key === 'Home') {
+                    updateSlide(0);
+                } else if (e.key === 'End') {
+                    updateSlide(totalSlides - 1);
+                }
+            });
+
+            // Button Navigation
+            nextBtn.addEventListener('click', nextAction);
+            prevBtn.addEventListener('click', prevAction);
+        });
+    </script>
+</body>
+</html>
